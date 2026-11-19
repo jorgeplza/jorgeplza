@@ -1,0 +1,3 @@
+fonts.json holds glyph outlines and kerning derived from Geist (https://github.com/vercel/geist-font),
+copyright The Geist Project Authors, used under the SIL Open Font License 1.1 (https://openfontlicense.org).
+The text in the images is set as outlines because web fonts do not load inside README images.

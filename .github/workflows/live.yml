@@ -1,0 +1,39 @@
+name: Redraw El Ávila
+
+# Every hour the scene is drawn again for the time in Caracas and pushed to the `live` branch,
+# which holds only the two images the README shows. The branch is replaced each time, so the history stays small.
+on:
+  schedule:
+    - cron: '7 * * * *'
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: live
+  cancel-in-progress: true
+
+jobs:
+  draw:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: node build.mjs
+      - name: Publish to the live branch
+        run: |
+          cd out
+          git init -q -b live
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "El Ávila at $(TZ=America/Caracas date '+%H:%M') in Caracas"
+          git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" live
+      # GitHub pauses scheduled workflows in repos with no activity for 60 days. This resets that clock.
+      - name: Keep the schedule on
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/live.yml/enable" || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
